@@ -30,14 +30,15 @@ def display_usage(cpu_usage, memory_usage, stars = 20):
 
     return f"CPU usage: |{cpu_bar}| {cpu_usage:.1f}%   RAM: |{memory_bar}| {memory_usage:.1f}%"
     
-def get_network_status():
+def get_network_status(webhook_url):
     global last_ver_net, net_status, previous_net_status 
     current_time = time.time()
     if current_time - last_ver_net >= 5:
         new_status = network.check_internet()
         
         if "ONLINE" in new_status and previous_net_status == "OFFLINE":
-            alert.send_discord_message("INTERNET RECONNECTED!")
+
+            alert.send_discord_message("INTERNET RECONNECTED!", webhook_url)
         
         previous_net_status = new_status
         net_status = new_status
@@ -45,29 +46,29 @@ def get_network_status():
 
     return f"NETWORK: |{net_status}|"
 
-def check_alerts(cpu, ram):
+def check_alerts(cpu, ram, webhook_url):
     global last_alert_cpu, last_alert_ram
     current_time = time.time()
     if cpu >= cpu_limit:
         if current_time - last_alert_cpu >= alert_break:
-            alert.send_discord_message(f"CPU ALERT: The processor reached {cpu}%!")
+            alert.send_discord_message(f"CPU ALERT: The processor reached {cpu}%!", webhook_url)
             last_alert_cpu = current_time
 
     if ram >= ram_limit:
         if current_time - last_alert_ram >= alert_break:
-            alert.send_discord_message(f"RAM ALERT: The memory reached: {ram}%!")
+            alert.send_discord_message(f"RAM ALERT: The memory reached: {ram}%!", webhook_url)
             last_alert_ram = current_time
 
-def start_agent(stop_event):
+def start_agent(stop_event, webhook_url):
     while not stop_event.is_set():
 
         cpu = psutil.cpu_percent()
         ram = psutil.virtual_memory().percent
 
-        check_alerts(cpu, ram)
+        check_alerts(cpu, ram, webhook_url)
 
         hardware_text = display_usage(cpu, ram, 30)
-        network_text = get_network_status()
+        network_text = get_network_status(webhook_url)
         print(f"\r{hardware_text}   {network_text}   ", end="")
         time.sleep(1)
 
