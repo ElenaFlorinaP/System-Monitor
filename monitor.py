@@ -37,7 +37,7 @@ def get_network_status():
         new_status = network.check_internet()
         
         if "ONLINE" in new_status and previous_net_status == "OFFLINE":
-            alert.send_discord_message("INTERNET RECONECTAT!")
+            alert.send_discord_message("INTERNET RECONNECTED!")
         
         previous_net_status = new_status
         net_status = new_status
@@ -57,16 +57,18 @@ def check_alerts(cpu, ram):
         if current_time - last_alert_ram >= alert_break:
             alert.send_discord_message(f"RAM ALERT: The memory reached: {ram}%!")
             last_alert_ram = current_time
-while True:
 
-    cpu = psutil.cpu_percent()
-    ram = psutil.virtual_memory().percent
+def start_agent(stop_event):
+    while not stop_event.is_set():
 
-    check_alerts(cpu, ram)
+        cpu = psutil.cpu_percent()
+        ram = psutil.virtual_memory().percent
 
-    hardware_text = display_usage(cpu, ram, 30)
-    network_text = get_network_status()
-    print(f"\r{hardware_text}   {network_text}   ", end="")
-    time.sleep(0.5)
+        check_alerts(cpu, ram)
+
+        hardware_text = display_usage(cpu, ram, 30)
+        network_text = get_network_status()
+        print(f"\r{hardware_text}   {network_text}   ", end="")
+        time.sleep(1)
 
 

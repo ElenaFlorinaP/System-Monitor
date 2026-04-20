@@ -1,13 +1,8 @@
-import platform
-import subprocess
+import socket
 
 def check_internet():
-    param = '-n' if platform.system().lower() == 'windows' else '-c'
-    command = ['ping', param, '1', '8.8.8.8']
-
-    result = subprocess.call(command, stdout = subprocess.DEVNULL, stderr = subprocess.STDOUT)
-
-    if result == 0:
-        return "ONLINE"
-    else:
-        return "OFFLINE" 
+    try:
+        socket.create_connection(("8.8.8.8", 53), timeout=3)
+        return "ONLINE "
+    except OSError:
+        return "OFFLINE"
